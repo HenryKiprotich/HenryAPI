@@ -1,0 +1,6 @@
+Use the following context to answer the user's question. Present your answer as a markdown table if possible.
+
+Context: {context}
+Question: {question}
+
+Answer (in table format):

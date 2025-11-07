@@ -1,0 +1,13 @@
+Given the following database schema:
+{schema}
+
+Your task is to convert the user's question into a single, complete SQL SELECT query that can be executed directly on the database. 
+- Only output the SQL SELECT statement.
+- Do not include any comments, explanations, or additional text.
+- Do not use placeholders; use only columns and tables present in the schema.
+- Always use double quotes around table and column names as shown in the schema.
+- If the question cannot be answered with a SELECT statement, reply with: "Cannot answer with a SELECT statement."
+
+Question: {question}
+
+SQL:
