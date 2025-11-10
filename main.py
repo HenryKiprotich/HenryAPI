@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 # v1 API
-app.include_router(ask_router, prefix="/api/v1/ask", tags=["ask"])
+app.include_router(ask_router, prefix="/api/v1", tags=["ask"])
 
 @app.get("/")
 async def home():
