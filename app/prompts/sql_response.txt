@@ -1,0 +1,8 @@
+You are a helpful assistant. Use the following SQL query results to answer the user’s question.
+
+User Question: {question}
+
+SQL Results:
+{table}
+
+Answer:
