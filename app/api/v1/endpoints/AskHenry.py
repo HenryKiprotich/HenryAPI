@@ -37,7 +37,7 @@ async def list_llms():
 @router.post("/ask/")
 async def ask_llm(
     request: Request,
-    files: Optional[List[UploadFile]] = File(None),
+    files: Optional[List[UploadFile]] = None,  # <- changed: remove File(...) so JSON requests work reliably
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -48,43 +48,47 @@ async def ask_llm(
     upload_paths: List[str] = []
     json_data: Dict[str, Any] = {}
 
-    # Parse JSON payload if present
-    if request.headers.get("content-type", "").startswith("application/json"):
+    # Try JSON first, fall back to form parsing
+    try:
+        json_data = await request.json()
+    except Exception:
         try:
-            json_data = await request.json()
+            form = await request.form()
+            # form can contain UploadFile objects too; convert to dict
+            json_data = {k: v for k, v in form.items()}
         except Exception:
-            logger.exception("Invalid JSON payload")
-            return JSONResponse(status_code=422, content={"error": "Invalid JSON payload"})
+            json_data = {}
 
     # Extract relevant fields
-    question = json_data.get("message") or json_data.get("question")
-    llm_name = json_data.get("llm_name")
-    conversation_id = json_data.get("conversation_id") or str(uuid.uuid4())
-    contact = json_data.get("contact")
-    context_message_id = json_data.get("context_message_id")
+    question = (json_data.get("message") or json_data.get("question")) if isinstance(json_data, dict) else None
+    llm_name = json_data.get("llm_name") if isinstance(json_data, dict) else None
+    conversation_id = (json_data.get("conversation_id") or str(uuid.uuid4())) if isinstance(json_data, dict) else str(uuid.uuid4())
+    contact = json_data.get("contact") if isinstance(json_data, dict) else None
+    context_message_id = json_data.get("context_message_id") if isinstance(json_data, dict) else None
 
     if not question:
         return JSONResponse(status_code=422, content={"error": "Missing 'message' or 'question' field"})
 
-    # Save uploaded files
+    # Save uploaded files (if any)
     try:
         if files:
             base_dir = Path(getattr(settings, "UPLOAD_DIR", "temp_uploads")) / conversation_id
             base_dir.mkdir(parents=True, exist_ok=True)
             for upload in files:
-                dest = base_dir / (upload.filename or f"file-{uuid.uuid4().hex}")
-                with dest.open("wb") as out_file:
-                    shutil.copyfileobj(upload.file, out_file)
-                    upload_paths.append(str(dest))
-                try:
-                    upload.file.close()
-                except Exception:
-                    pass
+                if getattr(upload, "filename", None):
+                    dest = base_dir / (upload.filename or f"file-{uuid.uuid4().hex}")
+                    with dest.open("wb") as out_file:
+                        shutil.copyfileobj(upload.file, out_file)
+                        upload_paths.append(str(dest))
+                    try:
+                        upload.file.close()
+                    except Exception:
+                        pass
     except Exception:
         logger.exception("Failed saving uploaded files")
         return JSONResponse(status_code=500, content={"error": "Failed to save uploaded files"})
 
-    # Ask the LLM
+    # Ask the LLM using the public manager.query (handles prompt formatting & storage)
     try:
         manager = LLMManager()
 
@@ -92,14 +96,17 @@ async def ask_llm(
         default_llm = "gemini-2.5-flash-preview"
         chosen_llm_name = llm_name if llm_name else default_llm
 
-        # Ensure LLM exists
-        llm_instance = manager.get_llm(chosen_llm_name)
+        # Run with a timeout to avoid indefinitely hanging requests
+        import asyncio
+        try:
+            answer = await asyncio.wait_for(
+                manager.query(db=db, question=question, llm_name=chosen_llm_name, session_id=conversation_id),
+                timeout=30.0,
+            )
+        except asyncio.TimeoutError:
+            logger.exception("LLM request timed out")
+            return JSONResponse(status_code=504, content={"error": "LLM request timed out"})
 
-        # Ask LLM
-        resp = await manager._invoke_llm(llm_instance, question)
-        answer = await manager._extract_content(resp)
-
-        # Return all relevant info
         return {
             "conversation_id": conversation_id,
             "llm": chosen_llm_name,
