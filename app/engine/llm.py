@@ -102,7 +102,7 @@ class LLMManager:
                 except Exception as e:
                     logger.warning(f"FAILED: Failed to initialize Gemini 2.5 Flash Lite: {e}")
             
-            # HuggingFace (only if working)
+            # HuggingFace 
             if settings.huggingfacehub_api_token:
                 try:
                     self.llms["Llama-3.1-8B-Instruct"] = HuggingFaceEndpoint(
@@ -115,7 +115,7 @@ class LLMManager:
                 except Exception as e:
                     logger.warning(f"FAILED: Failed to initialize Llama: {e}")
             
-            # DeepSeek (only if enabled and has credits)
+            # DeepSeek 
             if (settings.deepseek_api_key and 
                 hasattr(settings, 'deepseek_enabled') and 
                 getattr(settings, 'deepseek_enabled', False)):
@@ -129,7 +129,7 @@ class LLMManager:
                 except Exception as e:
                     logger.warning(f"FAILED: Failed to initialize DeepSeek: {e}")
             
-            # OpenAI (only if enabled and has valid key)
+            # OpenAI 
             if (ChatOpenAI and settings.openai_api_key and 
                 len(settings.openai_api_key) > 20 and 
                 hasattr(settings, 'openai_enabled') and 
@@ -145,7 +145,7 @@ class LLMManager:
                 except Exception as e:
                     logger.warning(f"FAILED: Failed to initialize OpenAI: {e}")
             
-            # Ensure we have at least one working LLM
+            # Ensure there is at least one working LLM
             if not self.llms:
                 logger.error("ERROR: No LLMs could be initialized!")
                 raise HTTPException(status_code=500, detail="No LLMs available")
@@ -262,8 +262,8 @@ class LLMManager:
             if 'session_id' not in metadata:
                 metadata['session_id'] = str(uuid.uuid4())
             
-            # Estimate tokens (this is a simple approximation)
-            # In a production system, you'd use the tokenizer from the specific model
+            # Estimate tokens 
+            # use tokenizer from the specific model in future for better accuracy
             prompt_tokens = len(prompt.split())
             response_tokens = len(response.split())
             
@@ -294,7 +294,7 @@ class LLMManager:
             
         except Exception as e:
             logger.exception(f"Failed to store conversation: {e}")
-            # We don't want to fail the main flow if storing conversations fails
+            # Don't fail the main flow if storing conversations fails
             # so just log the error but don't re-raise
             return None
 
@@ -444,7 +444,7 @@ class LLMManager:
             metadata=metadata
         )
 
-        # Log the generated SQL so you can inspect what the LLM produced
+        # Log the generated SQL so WE can inspect what the LLM produced
         logger.info(f"Generated SQL from LLM ({llm_name}):\n{sql}")
         
         # Add SQL to metadata for the final response

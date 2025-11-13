@@ -37,7 +37,7 @@ async def list_llms():
 @router.post("/ask/")
 async def ask_llm(
     request: Request,
-    files: Optional[List[UploadFile]] = None,  # <- changed: remove File(...) so JSON requests work reliably
+    files: Optional[List[UploadFile]] = None,  
     db: AsyncSession = Depends(get_db),
 ):
     """

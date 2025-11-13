@@ -33,11 +33,11 @@ class GoogleModelLister:
                 }
                 models.append(model_info)
                 
-            logger.info(f"✅ Found {len(models)} available models")
+            logger.info(f"Found {len(models)} available models")
             return models
             
         except Exception as e:
-            logger.error(f"❌ Error listing models: {e}")
+            logger.error(f"Error listing models: {e}")
             return []
 
     def filter_text_generation_models(self, models: List[Dict]) -> List[Dict]:
@@ -49,7 +49,7 @@ class GoogleModelLister:
             if 'generateContent' in methods:
                 text_gen_models.append(model)
                 
-        logger.info(f"📝 Found {len(text_gen_models)} models supporting text generation")
+        logger.info(f"Found {len(text_gen_models)} models supporting text generation")
         return text_gen_models
 
     async def test_model_with_langchain(self, model_name: str) -> Dict:
@@ -72,7 +72,7 @@ class GoogleModelLister:
             response = await llm.ainvoke("Say 'Hello'")
             content = response.content if hasattr(response, 'content') else str(response)
             
-            logger.info(f"✅ {model_name} works with LangChain!")
+            logger.info(f"{model_name} works with LangChain!")
             return {
                 "model": model_name,
                 "langchain_model": langchain_model_name,
@@ -81,7 +81,7 @@ class GoogleModelLister:
             }
             
         except Exception as e:
-            logger.warning(f"❌ {model_name} failed with LangChain: {str(e)[:100]}...")
+            logger.warning(f"{model_name} failed with LangChain: {str(e)[:100]}...")
             return {
                 "model": model_name,
                 "langchain_model": langchain_model_name,
@@ -96,10 +96,10 @@ class GoogleModelLister:
         print("="*80)
         
         if not models:
-            print("❌ No models found!")
+            print("No models found!")
             return
             
-        print(f"📊 Total models found: {len(models)}")
+        print(f"Total models found: {len(models)}")
         print("\n" + "="*80)
         
         for i, model in enumerate(models, 1):
@@ -120,9 +120,9 @@ class GoogleModelLister:
         if text_gen_models:
             for model in text_gen_models:
                 langchain_name = model['name'].replace('models/', '')
-                print(f"✅ {model['name']} (LangChain: '{langchain_name}')")
+                print(f"{model['name']} (LangChain: '{langchain_name}')")
         else:
-            print("❌ No models support text generation!")
+            print("No models support text generation!")
 
 async def main():
     """Run the Google model lister"""
@@ -133,7 +133,7 @@ async def main():
         models = lister.list_available_models()
         
         if not models:
-            print("❌ Could not retrieve models. Check your API key and internet connection.")
+            print("Could not retrieve models. Check your API key and internet connection.")
             return
             
         # Print detailed report
@@ -154,10 +154,10 @@ async def main():
                 
                 if result['status'] == 'working':
                     working_models.append(result)
-                    print(f"✅ {result['model']} -> Use: '{result['langchain_model']}'")
+                    print(f"{result['model']} -> Use: '{result['langchain_model']}'")
                     print(f"   Response: {result['response']}")
                 else:
-                    print(f"❌ {result['model']}: {result['error'][:60]}...")
+                    print(f"{result['model']}: {result['error'][:60]}...")
                     
                 await asyncio.sleep(0.5)  # Rate limiting
             
@@ -177,11 +177,11 @@ async def main():
 ),
 """)
             else:
-                print("\n❌ No models work with LangChain!")
+                print("\nNo models work with LangChain!")
         
     except Exception as e:
         logger.exception(f"Error running Google model lister: {e}")
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())
