@@ -274,22 +274,22 @@ class LLMManager:
             
             # Create new AIConversation object
             conversation = AIConversation(
-                UserID=user_id,
-                SessionID=session_id,
-                Prompt=prompt,
-                Response=response,
-                Model=model,
-                Temperature=temperature,
-                TokensPrompt=prompt_tokens,
-                TokensResponse=response_tokens,
-                Metadata=metadata
+                user_id=user_id,
+                session_id=session_id,
+                prompt=prompt,
+                response=response,
+                model=model,
+                temperature=temperature,
+                tokens_prompt=prompt_tokens,
+                tokens_response=response_tokens,
+                metadata=metadata
             )
             
             db.add(conversation)
             await db.commit()
             await db.refresh(conversation)
             
-            logger.info(f"Stored conversation with ID: {conversation.ID}, model: {model}")
+            logger.info(f"Stored conversation with ID: {conversation.id}, model: {model}")
             return conversation
             
         except Exception as e:
@@ -516,7 +516,7 @@ class LLMManager:
         
         result = {"sql": sql, "raw": raw, "formatted": formatted}
         if final_convo:
-            result["conversation_id"] = final_convo.ID
+            result["conversation_id"] = final_convo.id
             
         return result
         

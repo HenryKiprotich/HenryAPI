@@ -4,25 +4,25 @@ import uuid
 from datetime import datetime
 
 class AIConversationBase(BaseModel):
-    Prompt: str
-    Response: str
-    Model: Optional[str] = None
-    Temperature: Optional[float] = 0.7
-    TokensPrompt: Optional[int] = None
-    TokensResponse: Optional[int] = None
-    Metadata: Optional[Dict[str, Any]] = None
+    prompt: str
+    response: str
+    model: Optional[str] = None
+    temperature: Optional[float] = 0.7
+    tokens_prompt: Optional[int] = None
+    tokens_response: Optional[int] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 class AIConversationCreate(AIConversationBase):
-    UserID: Optional[uuid.UUID] = None
-    SessionID: Optional[uuid.UUID] = None
+    user_id: Optional[uuid.UUID] = None
+    session_id: Optional[uuid.UUID] = None
 
 class AIConversation(AIConversationBase):
-    ID: int
-    UserID: Optional[uuid.UUID] = None
-    SessionID: Optional[uuid.UUID] = None
-    Feedback: Optional[int] = None
-    CreatedAt: datetime
-    
+    id: int
+    user_id: Optional[uuid.UUID] = None
+    session_id: Optional[uuid.UUID] = None
+    feedback: Optional[int] = None
+    created_at: datetime
+
     class Config:
         from_attributes = True
 
